@@ -1,0 +1,8 @@
+{
+  "name": "idkwhattoplay",
+  "version": "3.0.0",
+  "description": "AI-powered game picker — group, backlog, and mood modes",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0"
+  }
+}

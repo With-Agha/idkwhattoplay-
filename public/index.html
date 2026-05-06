@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IDKWhatToPlay — AI Game Picker for Squads</title>
+  <meta name="description" content="Stop arguing about what to play. Group mode, backlog mode, mood mode. Free AI game picker. No sign-up."/>
+  <meta property="og:title" content="IDKWhatToPlay — AI Game Picker"/>
+  <meta property="og:description" content="Three modes. One mission. Never waste another night deciding what to play."/>
+  <meta name="theme-color" content="#05080f"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'"/>
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap"/></noscript>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+  <div class="amb amb1" aria-hidden="true"></div>
+  <div class="amb amb2" aria-hidden="true"></div>
+  <div class="amb amb3" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav aria-label="Site navigation">
+    <a class="logo" href="/" aria-label="IDKWhatToPlay home">
+      <span class="logo-dot" aria-hidden="true"></span>
+      IDKWhatToPlay
+    </a>
+    <div class="nav-right">
+      <!-- Daily energy meter -->
+      <div class="meter-wrap" aria-label="Daily picks remaining">
+        <span>energy</span>
+        <div class="meter-bar" role="progressbar" aria-label="Daily generations remaining">
+          <div class="meter-fill" id="meter-fill"></div>
+        </div>
+        <span id="meter-count">5</span><span>/5</span>
+      </div>
+      <span class="nav-badge">free · no login</span>
+      <a class="bmc-nav" href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener noreferrer">☕ Support</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eye" aria-hidden="true"><span></span>AI-powered game picker<span></span></div>
+    <h1>
+      <span style="color:var(--text)">Stop</span><br>
+      <span class="h1c">arguing.</span><br>
+      <span class="h1o">Start playing.</span>
+    </h1>
+    <p class="hero-sub">Three modes. One mission. Never waste another night deciding what to play.</p>
+  </header>
+
+  <!-- MODE SELECTOR -->
+  <div class="modes-wrap">
+    <p class="modes-lbl">// choose your situation</p>
+    <div class="mode-tabs" role="tablist" aria-label="Game picker modes">
+
+      <button class="mode-tab tab-a active" id="tab-a"
+        onclick="switchMode('a')"
+        role="tab" aria-selected="true" aria-controls="panel-a">
+        <span class="tab-icon" aria-hidden="true">👥</span>
+        <div class="tab-title">Squad Night</div>
+        <div class="tab-desc">Group of friends. Multiple platforms. Zero arguments.</div>
+      </button>
+
+      <button class="mode-tab tab-b" id="tab-b"
+        onclick="switchMode('b')"
+        role="tab" aria-selected="false" aria-controls="panel-b">
+        <span class="tab-icon" aria-hidden="true">📚</span>
+        <div class="tab-title">Backlog</div>
+        <div class="tab-desc">You own 200 games. AI picks what to play next.</div>
+      </button>
+
+      <button class="mode-tab tab-c" id="tab-c"
+        onclick="switchMode('c')"
+        role="tab" aria-selected="false" aria-controls="panel-c">
+        <span class="tab-icon" aria-hidden="true">🎭</span>
+        <div class="tab-title">Mood Pick</div>
+        <div class="tab-desc">Fast and opinionated. Three questions. One answer.</div>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- PANELS -->
+  <main id="main" class="panels-wrap">
+
+    <!-- ══════════════════════════════════════
+         PANEL A — SQUAD / GROUP MODE
+    ══════════════════════════════════════ -->
+    <div class="panel panel-a active" id="panel-a" role="tabpanel" aria-labelledby="tab-a">
+      <div class="card">
+
+        <div class="row2">
+          <div class="field">
+            <label class="flabel" for="a-players">Players tonight</label>
+            <select id="a-players" name="a-players">
+              <option value="2 players">2 players</option>
+              <option value="3 players" selected>3 players</option>
+              <option value="4 players">4 players</option>
+              <option value="5 players">5 players</option>
+              <option value="6 or more players">6+ players</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="flabel" for="a-time">Time available</label>
+            <select id="a-time" name="a-time">
+              <option value="under 30 minutes">Quick (&lt;30 min)</option>
+              <option value="about 1 hour" selected>About an hour</option>
+              <option value="2 to 3 hours">2–3 hours</option>
+              <option value="all night">All night 🌙</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <fieldset style="border:none;padding:0;margin:0">
+            <legend class="sr-only">Platforms available in your squad — select all that apply</legend>
+            <span class="flabel" aria-hidden="true">Platforms in your squad</span>
+            <div class="pill-grid pgrid">
+              <div class="pill square"><input type="checkbox" id="apc" name="a-plat" value="PC" checked/><label for="apc">💻 PC</label></div>
+              <div class="pill square"><input type="checkbox" id="aps5" name="a-plat" value="PS5"/><label for="aps5">🎮 PS5</label></div>
+              <div class="pill square"><input type="checkbox" id="axbox" name="a-plat" value="Xbox"/><label for="axbox">🟢 Xbox</label></div>
+              <div class="pill square"><input type="checkbox" id="asw" name="a-plat" value="Nintendo Switch"/><label for="asw">🕹️ Switch</label></div>
+              <div class="pill square"><input type="checkbox" id="amob" name="a-plat" value="Mobile"/><label for="amob">📱 Mobile</label></div>
+              <div class="pill square"><input type="checkbox" id="aany" name="a-plat" value="any platform"/><label for="aany">✨ Any</label></div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="field">
+          <fieldset style="border:none;padding:0;margin:0">
+            <legend class="sr-only">Tonight's vibe — pick one</legend>
+            <span class="flabel" aria-hidden="true">Tonight's vibe</span>
+            <div class="pill-grid">
+              <div class="pill"><input type="radio" name="a-vibe" id="av1" value="chill and relaxed, nothing too intense" checked/><label for="av1">😌 Chill</label></div>
+              <div class="pill"><input type="radio" name="a-vibe" id="av2" value="competitive and intense, we want to win"/><label for="av2">🔥 Competitive</label></div>
+              <div class="pill"><input type="radio" name="a-vibe" id="av3" value="chaotic and funny, we want to laugh a lot"/><label for="av3">😂 Chaotic</label></div>
+              <div class="pill"><input type="radio" name="a-vibe" id="av4" value="cooperative, we want to play as a team"/><label for="av4">🤝 Co-op</label></div>
+              <div class="pill"><input type="radio" name="a-vibe" id="av5" value="casual pick-up-and-play, easy to learn"/><label for="av5">⚡ Casual</label></div>
+              <div class="pill"><input type="radio" name="a-vibe" id="av6" value="sweaty and try-hard, full focus mode"/><label for="av6">💀 Sweat</label></div>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="field">
+          <label class="flabel" for="a-ctx">
+            Games you own or want to avoid
+            <span style="color:var(--text3);text-transform:none;letter-spacing:0;font-size:0.85em"> — optional</span>
+          </label>
+          <textarea id="a-ctx" placeholder="e.g. We have Minecraft, Rocket League, Valorant. Avoid horror." maxlength="300" aria-describedby="a-ctx-hint"></textarea>
+          <span id="a-ctx-hint" class="sr-only">Optional. List games you own or want to avoid. Max 300 characters.</span>
+        </div>
+
+        <button class="btn-gen btn-a" id="btn-a" onclick="generate('a')" aria-label="Find the perfect game for our squad tonight">
+          Find our game tonight <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="btn-note">// 5 free picks per day · no account · powered by claude ai</p>
+
+        <!-- Scan animation -->
+        <div class="scan-wrap" id="scan-a" aria-hidden="true">
+          <div class="scan-line"></div>
+          <div class="scan-text">
+            <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+            <span id="ltxt-a">// scanning the game library...</span>
+          </div>
+        </div>
+
+        <div class="loading" id="load-a" role="status" aria-live="polite" aria-label="Finding your game"></div>
+        <div class="err" id="err-a" role="alert" aria-live="assertive"></div>
+
+        <!-- RESULT CARD A -->
+        <div class="result" id="res-a" aria-label="Game recommendation">
+          <div class="rcard" id="rcard-a">
+            <div class="rcard-top">
+              <span class="rcard-label">// squad pick locked in</span>
+              <div class="rcard-actions">
+                <button class="btn-sm" onclick="generate('a')" aria-label="Generate a new recommendation">Reroll</button>
+                <button class="btn-sm" id="copy-a" onclick="copyResult('a')" aria-label="Copy recommendation to clipboard">Copy</button>
+              </div>
+            </div>
+            <div class="rcard-body">
+              <div class="rtitle" id="rtitle-a" aria-live="polite"></div>
+              <div class="rbody" id="rbody-a" aria-live="polite"></div>
+              <div class="raff">
+                <div class="raff-label">// find it here</div>
+                <a class="aff-btn aff-steam" id="rbtn-steam-a" href="#" target="_blank" rel="noopener noreferrer" aria-label="Search for this game on Steam">
+                  🖥️ Search on Steam
+                </a>
+                <a class="aff-btn aff-gmg" id="rbtn-gmg-a" href="#" target="_blank" rel="noopener noreferrer" aria-label="Check price on Green Man Gaming">
+                  🟢 Check price on GMG
+                </a>
+                <a class="aff-btn aff-hb" id="rbtn-hb-a" href="#" target="_blank" rel="noopener noreferrer" aria-label="Search on Humble Bundle">
+                  🎁 Humble Bundle
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- .card -->
+    </div><!-- panel-a -->
+
+
+    <!-- ══════════════════════════════════════
+         PANEL B — BACKLOG MODE
+    ══════════════════════════════════════ -->
+    <div class="panel panel-b" id="panel-b" role="tabpanel" aria-labelledby="tab-b">
+      <div class="card">
+
+        <div class="field">
+          <label class="flabel" for="b-games">
+            Your games
+            <span style="color:var(--text3);text-transform:none;letter-spacing:0;font-size:0.85em"> — paste your library or type what you own</span>
+          </label>
+          <textarea id="b-games" style="min-height:110px"
+            placeholder="e.g. Cyberpunk 2077, Hollow Knight, Elden Ring, Hades, Stardew Valley, GTA V, Deep Rock Galactic, Among Us..."
+            maxlength="600"
+            aria-describedby="b-games-hint"></textarea>
+          <span id="b-games-hint" class="sr-only">List the games you own. AI will pick one from this list. Max 600 characters.</span>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label class="flabel" for="b-time">Time available</label>
+            <select id="b-time">
+              <option value="under 30 minutes">Quick (&lt;30 min)</option>
+              <option value="about 1 hour" selected>About an hour</option>
+              <option value="2 to 3 hours">2–3 hours</option>
+              <option value="all night">All night 🌙</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="flabel" for="b-players">Playing</label>
+            <select id="b-players">
+              <option value="solo" selected>Solo</option>
+              <option value="with friends">With friends</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <fieldset style="border:none;padding:0;margin:0">
+            <legend class="sr-only">Your current mood — pick one</legend>
+            <span class="flabel" aria-hidden="true">Current mood</span>
+            <div class="pill-grid">
+              <div class="pill"><input type="radio" name="b-mood" id="bm1" value="chill and relaxed" checked/><label for="bm1">😌 Chill</label></div>
+              <div class="pill"><input type="radio" name="b-mood" id="bm2" value="want a real challenge"/><label for="bm2">💪 Challenge</label></div>
+              <div class="pill"><input type="radio" name="b-mood" id="bm3" value="something mindless to unwind, no thinking required"/><label for="bm3">🧠 Brainless</label></div>
+              <div class="pill"><input type="radio" name="b-mood" id="bm4" value="want a story to get completely lost in"/><label for="bm4">📖 Story</label></div>
+              <div class="pill"><input type="radio" name="b-mood" id="bm5" value="something short with satisfying quick sessions"/><label for="bm5">⚡ Quick hit</label></div>
+              <div class="pill"><input type="radio" name="b-mood" id="bm6" value="want to feel progress and accomplishment"/><label for="bm6">🏆 Progress</label></div>
+            </div>
+          </fieldset>
+        </div>
+
+        <button class="btn-gen btn-b" id="btn-b" onclick="generate('b')" aria-label="Pick a game from my backlog">
+          Pick from my backlog <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="btn-note">// 5 free picks per day · no account · powered by claude ai</p>
+
+        <div class="scan-wrap" id="scan-b" aria-hidden="true">
+          <div class="scan-line"></div>
+          <div class="scan-text">
+            <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+            <span id="ltxt-b">// digging through your library...</span>
+          </div>
+        </div>
+
+        <div class="loading" id="load-b" role="status" aria-live="polite"></div>
+        <div class="err" id="err-b" role="alert" aria-live="assertive"></div>
+
+        <!-- RESULT CARD B -->
+        <div class="result" id="res-b" aria-label="Game recommendation">
+          <div class="rcard" id="rcard-b">
+            <div class="rcard-top">
+              <span class="rcard-label">// backlog pick locked in</span>
+              <div class="rcard-actions">
+                <button class="btn-sm" onclick="generate('b')" aria-label="Generate a new recommendation">Reroll</button>
+                <button class="btn-sm" id="copy-b" onclick="copyResult('b')" aria-label="Copy recommendation">Copy</button>
+              </div>
+            </div>
+            <div class="rcard-body">
+              <div class="rtitle" id="rtitle-b" aria-live="polite"></div>
+              <div class="rbody" id="rbody-b" aria-live="polite"></div>
+              <div class="raff">
+                <div class="raff-label">// don't have it? grab it here</div>
+                <a class="aff-btn aff-steam" id="rbtn-steam-b" href="#" target="_blank" rel="noopener noreferrer">🖥️ Search on Steam</a>
+                <a class="aff-btn aff-gmg" id="rbtn-gmg-b" href="#" target="_blank" rel="noopener noreferrer">🟢 Check price on GMG</a>
+                <a class="aff-btn aff-hb" id="rbtn-hb-b" href="#" target="_blank" rel="noopener noreferrer">🎁 Humble Bundle</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- panel-b -->
+
+
+    <!-- ══════════════════════════════════════
+         PANEL C — MOOD MODE
+    ══════════════════════════════════════ -->
+    <div class="panel panel-c" id="panel-c" role="tabpanel" aria-labelledby="tab-c">
+      <div class="card">
+
+        <div class="field">
+          <label class="flabel" for="c-feeling">How are you feeling right now?</label>
+          <select id="c-feeling">
+            <option value="relaxed and calm, want something cozy and low pressure">😌 Relaxed and calm</option>
+            <option value="bored and need something exciting to wake me up">😤 Bored, need excitement</option>
+            <option value="stressed and need to completely escape reality">😰 Stressed, need to escape</option>
+            <option value="hyped and full of energy, ready for anything">⚡ Hyped and energetic</option>
+            <option value="a bit sad or down and want something comforting">💙 A bit down</option>
+            <option value="competitive and want to prove myself against others">🔥 Competitive mood</option>
+            <option value="creative and want to build, explore, or express something">🎨 Creative and expressive</option>
+            <option value="tired but not ready to sleep, want something easy and enjoyable">😴 Tired but restless</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <fieldset style="border:none;padding:0;margin:0">
+              <legend class="sr-only">Playing solo or with friends</legend>
+              <span class="flabel" aria-hidden="true">Playing</span>
+              <div class="pill-grid">
+                <div class="pill"><input type="radio" name="c-solo" id="cs1" value="solo" checked/><label for="cs1">🎮 Solo</label></div>
+                <div class="pill"><input type="radio" name="c-solo" id="cs2" value="with friends"/><label for="cs2">👥 Friends</label></div>
+              </div>
+            </fieldset>
+          </div>
+          <div class="field">
+            <label class="flabel" for="c-time">Time available</label>
+            <select id="c-time">
+              <option value="under 30 minutes">Under 30 min</option>
+              <option value="about 1 hour" selected>About an hour</option>
+              <option value="2 to 3 hours">2–3 hours</option>
+              <option value="all night">All night</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-gen btn-c" id="btn-c" onclick="generate('c')" aria-label="Get a game recommendation based on my mood">
+          Match my mood <span class="arrow" aria-hidden="true">→</span>
+        </button>
+        <p class="btn-note">// 5 free picks per day · no account · powered by claude ai</p>
+
+        <div class="scan-wrap" id="scan-c" aria-hidden="true">
+          <div class="scan-line"></div>
+          <div class="scan-text">
+            <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+            <span id="ltxt-c">// reading your energy...</span>
+          </div>
+        </div>
+
+        <div class="loading" id="load-c" role="status" aria-live="polite"></div>
+        <div class="err" id="err-c" role="alert" aria-live="assertive"></div>
+
+        <!-- RESULT CARD C -->
+        <div class="result" id="res-c" aria-label="Game recommendation">
+          <div class="rcard" id="rcard-c">
+            <div class="rcard-top">
+              <span class="rcard-label">// mood match locked in</span>
+              <div class="rcard-actions">
+                <button class="btn-sm" onclick="generate('c')" aria-label="Generate a new recommendation">Reroll</button>
+                <button class="btn-sm" id="copy-c" onclick="copyResult('c')" aria-label="Copy recommendation">Copy</button>
+              </div>
+            </div>
+            <div class="rcard-body">
+              <div class="rtitle" id="rtitle-c" aria-live="polite"></div>
+              <div class="rbody" id="rbody-c" aria-live="polite"></div>
+              <div class="raff">
+                <div class="raff-label">// find it here</div>
+                <a class="aff-btn aff-steam" id="rbtn-steam-c" href="#" target="_blank" rel="noopener noreferrer">🖥️ Search on Steam</a>
+                <a class="aff-btn aff-gmg" id="rbtn-gmg-c" href="#" target="_blank" rel="noopener noreferrer">🟢 Check price on GMG</a>
+                <a class="aff-btn aff-hb" id="rbtn-hb-c" href="#" target="_blank" rel="noopener noreferrer">🎁 Humble Bundle</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- panel-c -->
+
+  </main><!-- panels-wrap -->
+
+
+  <!-- HOW IT WORKS -->
+  <section class="section" aria-labelledby="how-title">
+    <p class="sec-eye">// how it works</p>
+    <h2 class="sec-title" id="how-title">Zero arguments. Pure gaming.</h2>
+    <p class="sec-sub">Pick your situation. Answer a few questions. Get a definitive answer.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n" aria-hidden="true">01</div>
+        <div class="step-t">Pick your mode</div>
+        <p class="step-d">Squad night, clearing your backlog, or pure mood match. Three situations, one tool.</p>
+      </div>
+      <div class="step">
+        <div class="step-n" aria-hidden="true">02</div>
+        <div class="step-t">Set the details</div>
+        <p class="step-d">Tell us who's playing, what you've got, and the energy tonight. 30 seconds max.</p>
+      </div>
+      <div class="step">
+        <div class="step-n" aria-hidden="true">03</div>
+        <div class="step-t">Get the pick</div>
+        <p class="step-d">One specific game. A clear reason why. Not a list. Not a "maybe". A decision.</p>
+      </div>
+      <div class="step">
+        <div class="step-n" aria-hidden="true">04</div>
+        <div class="step-t">Just play</div>
+        <p class="step-d">No more 20-minute debates. Load it up. The only question now is who's hosting.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHERE TO GET IT -->
+  <section class="section" aria-labelledby="stores-title">
+    <p class="sec-eye">// where to get it</p>
+    <h2 class="sec-title" id="stores-title">Best gaming stores</h2>
+    <p class="sec-sub">The best places to grab your next game at the best price.</p>
+    <div class="stores-grid">
+      <a class="store" href="https://www.greenmangaming.com" target="_blank" rel="noopener noreferrer" aria-label="Green Man Gaming — cheapest PC game keys">
+        <div class="store-icon">🟢</div>
+        <div class="store-name">Green Man Gaming</div>
+        <p class="store-desc">Legit PC game keys, usually cheaper than Steam. Great for AAA titles at a discount.</p>
+        <span class="stag stag-g">Cheapest keys</span>
+      </a>
+      <a class="store" href="https://www.humblebundle.com" target="_blank" rel="noopener noreferrer" aria-label="Humble Bundle — pay what you want game bundles">
+        <div class="store-icon">🎁</div>
+        <div class="store-name">Humble Bundle</div>
+        <p class="store-desc">Pay what you want for bundles of games. Best deals in gaming — 10+ titles for the price of one.</p>
+        <span class="stag stag-a">Best deals</span>
+      </a>
+      <a class="store" href="https://www.razer.com" target="_blank" rel="noopener noreferrer" aria-label="Razer — gaming gear">
+        <div class="store-icon">🐍</div>
+        <div class="store-name">Razer</div>
+        <p class="store-desc">Level up your setup. Gaming mice, keyboards, and headsets trusted by pros worldwide.</p>
+        <span class="stag stag-b">Best gear</span>
+      </a>
+      <a class="store" href="https://amzn.to/games" target="_blank" rel="noopener noreferrer" aria-label="Amazon — games and gaming gear">
+        <div class="store-icon">📦</div>
+        <div class="store-name">Amazon</div>
+        <p class="store-desc">Games, gear, and accessories. Fast delivery and easy returns. Great for console games.</p>
+        <span class="stag stag-w">Fast delivery</span>
+      </a>
+    </div>
+    <p class="stores-note">// some links are affiliate links — we earn a small commission at no extra cost to you. we only list stores we actually use.</p>
+  </section>
+
+  <!-- BUY ME A COFFEE -->
+  <section class="support-section" aria-labelledby="support-title">
+    <div class="scard">
+      <div class="sicon" aria-hidden="true">☕</div>
+      <h2 class="stitle" id="support-title">Enjoying the tool?</h2>
+      <p class="sdesc">This site is completely free and always will be. If it saved you from a 20-minute argument with your friends, consider buying me a coffee — it keeps the servers running and new features coming.</p>
+      <a class="bmc-btn" href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener noreferrer">
+        ☕ Buy me a coffee
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <p>idkwhattoplay.live &nbsp;·&nbsp; free ai game picker &nbsp;·&nbsp; no login needed &nbsp;·&nbsp; built for gamers by a gamer</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+
+</body>
+</html>
