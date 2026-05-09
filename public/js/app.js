@@ -1,196 +1,154 @@
 /* ============================================================
-   IDKWhatToPlay — app.js v3.0
-   Handles: mode switching, daily limits, API calls,
-   result cards, affiliate links, Web Audio sounds
+   IDKWhatToPlay v4.0 — app.js
+   Glassmorphism gaming platform — all logic lives here
    ============================================================ */
 
-// ── DAILY LIMIT CONFIG ──
+// ── CONFIG ──
 const DAILY_LIMIT = 5;
-const STORAGE_KEY = "idkwtp_usage";
-
-// ── LOADING MESSAGES per mode ──
+const STORAGE_KEY = "idkwtp_v4_usage";
 const LOADING_MSGS = {
-  a: ["// assembling your squad loadout...", "// cross-referencing platforms...", "// calculating vibe compatibility...", "// consulting the gaming council..."],
-  b: ["// scanning your library...", "// matching mood to backlog...", "// running compatibility checks...", "// the algorithm is thinking..."],
-  c: ["// reading your energy...", "// vibing with the universe...", "// mood detected...", "// locking in the perfect match..."]
+  a: ["// assembling squad loadout...", "// cross-referencing platforms...", "// calculating vibe compatibility...", "// consulting the gaming council...", "// locking in the perfect pick..."],
+  b: ["// scanning your library...", "// matching mood to backlog...", "// running compatibility checks...", "// the algorithm is thinking...", "// found your pick..."],
+  c: ["// reading your energy...", "// vibing with the universe...", "// mood signature detected...", "// locking in the perfect match...", "// almost there..."]
 };
 
 let loadingTimers = {};
-let currentMode = "a";
-
-// ── WEB AUDIO ENGINE ──
-// All sounds generated in-browser — no external files needed
+let zenMode = false;
 let audioCtx = null;
 
-function getAudioCtx() {
+// ── AUDIO ENGINE ──
+function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
 
 function playTick() {
   try {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.06, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
-    osc.type = "square";
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.06);
+    const c = getCtx(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.frequency.setValueAtTime(900, c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(650, c.currentTime + 0.05);
+    g.gain.setValueAtTime(0.05, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.06);
+    o.type = "square"; o.start(c.currentTime); o.stop(c.currentTime + 0.06);
   } catch(e) {}
 }
 
 function playSelect() {
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    [0, 0.05, 0.1].forEach((offset, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      const freqs = [440, 550, 660];
-      osc.frequency.setValueAtTime(freqs[i], now + offset);
-      gain.gain.setValueAtTime(0.08, now + offset);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.12);
-      osc.type = "sine";
-      osc.start(now + offset);
-      osc.stop(now + offset + 0.12);
+    const c = getCtx(), n = c.currentTime;
+    [0, 0.06, 0.12].forEach((off, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.frequency.setValueAtTime([440, 554, 660][i], n + off);
+      g.gain.setValueAtTime(0.07, n + off);
+      g.gain.exponentialRampToValueAtTime(0.001, n + off + 0.14);
+      o.type = "sine"; o.start(n + off); o.stop(n + off + 0.14);
     });
   } catch(e) {}
 }
 
 function playPowerUp() {
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    // Rising sweep
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.type = "sawtooth";
-    osc1.frequency.setValueAtTime(150, now);
-    osc1.frequency.exponentialRampToValueAtTime(800, now + 0.4);
-    gain1.gain.setValueAtTime(0.0, now);
-    gain1.gain.linearRampToValueAtTime(0.12, now + 0.1);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-    osc1.start(now);
-    osc1.stop(now + 0.5);
-    // Chord hit
-    [330, 440, 550, 660].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, now + 0.35);
-      gain.gain.setValueAtTime(0.1, now + 0.35);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
-      osc.start(now + 0.35);
-      osc.stop(now + 0.9);
+    const c = getCtx(), n = c.currentTime;
+    const o1 = c.createOscillator(), g1 = c.createGain();
+    o1.connect(g1); g1.connect(c.destination);
+    o1.type = "sawtooth";
+    o1.frequency.setValueAtTime(120, n);
+    o1.frequency.exponentialRampToValueAtTime(900, n + 0.45);
+    g1.gain.setValueAtTime(0, n);
+    g1.gain.linearRampToValueAtTime(0.1, n + 0.08);
+    g1.gain.exponentialRampToValueAtTime(0.001, n + 0.55);
+    o1.start(n); o1.stop(n + 0.55);
+    [330, 415, 523, 659, 831].forEach((f, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.type = "sine"; o.frequency.setValueAtTime(f, n + 0.4);
+      g.gain.setValueAtTime(0.09, n + 0.4);
+      g.gain.exponentialRampToValueAtTime(0.001, n + 1.0);
+      o.start(n + 0.4); o.stop(n + 1.0);
     });
   } catch(e) {}
 }
 
-// ── DAILY LIMIT SYSTEM ──
+// ── ZEN MODE ──
+function toggleZen() {
+  zenMode = !zenMode;
+  document.body.classList.toggle("zen-mode", zenMode);
+  const btn = document.getElementById("zen-btn");
+  if (btn) {
+    btn.classList.toggle("active", zenMode);
+    btn.textContent = zenMode ? "⊙ Exit Zen" : "⊙ Zen Mode";
+  }
+  playSelect();
+}
+
+// ── DAILY LIMIT ──
+function today() { return new Date().toISOString().slice(0, 10); }
+
 function getUsage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { count: 0, date: today() };
-    const data = JSON.parse(raw);
-    if (data.date !== today()) return { count: 0, date: today() };
-    return data;
+    const d = JSON.parse(raw);
+    if (d.date !== today()) return { count: 0, date: today() };
+    return d;
   } catch { return { count: 0, date: today() }; }
 }
 
 function incrementUsage() {
-  const usage = getUsage();
-  usage.count += 1;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(usage)); } catch {}
+  const u = getUsage(); u.count++;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(u)); } catch {}
   updateMeter();
 }
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getRemainingGenerations() {
-  return Math.max(0, DAILY_LIMIT - getUsage().count);
-}
+function getRemaining() { return Math.max(0, DAILY_LIMIT - getUsage().count); }
 
 function updateMeter() {
-  const remaining = getRemainingGenerations();
+  const r = getRemaining();
   const fill = document.getElementById("meter-fill");
   const count = document.getElementById("meter-count");
   if (!fill || !count) return;
-  const pct = (remaining / DAILY_LIMIT) * 100;
-  fill.style.width = pct + "%";
-  fill.style.background = remaining > 2 ? "var(--a)" : remaining > 0 ? "var(--warm)" : "var(--red)";
-  count.textContent = remaining;
-  // Color the text
-  count.style.color = remaining > 2 ? "var(--a)" : remaining > 0 ? "var(--warm)" : "var(--red)";
+  fill.style.width = (r / DAILY_LIMIT * 100) + "%";
+  fill.style.background = r > 2 ? "var(--teal)" : r > 0 ? "var(--amber)" : "var(--red)";
+  count.textContent = r;
+  count.style.color = r > 2 ? "var(--teal)" : r > 0 ? "var(--amber)" : "var(--red)";
 }
 
 // ── MODE SWITCHING ──
 function switchMode(mode) {
   playSelect();
-  currentMode = mode;
-
-  // Update tabs
   document.querySelectorAll(".mode-tab").forEach(t => {
     t.classList.remove("active");
     t.setAttribute("aria-selected", "false");
   });
   document.getElementById("tab-" + mode).classList.add("active");
   document.getElementById("tab-" + mode).setAttribute("aria-selected", "true");
-
-  // Update panels
   document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
   document.getElementById("panel-" + mode).classList.add("active");
 }
 
-// ── RIPPLE EFFECT ──
+// ── RIPPLE ──
 function createRipple(e) {
-  const ripple = document.createElement("div");
-  ripple.className = "ripple";
-  ripple.style.left = e.clientX + "px";
-  ripple.style.top = e.clientY + "px";
-  document.body.appendChild(ripple);
-  setTimeout(() => ripple.remove(), 500);
+  const r = document.createElement("div");
+  r.className = "ripple";
+  r.style.left = e.clientX + "px";
+  r.style.top = e.clientY + "px";
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 600);
 }
 
-// ── SCANNING ANIMATION ──
-function startScanAnimation(mode) {
-  const scanEl = document.getElementById("scan-" + mode);
-  if (scanEl) scanEl.classList.add("show");
-}
-
-function stopScanAnimation(mode) {
-  const scanEl = document.getElementById("scan-" + mode);
-  if (scanEl) scanEl.classList.remove("show");
-}
-
-// ── MAIN GENERATE FUNCTION ──
+// ── GENERATE ──
 async function generate(mode) {
   playSelect();
 
-  // Check daily limit
-  if (getRemainingGenerations() <= 0) {
-    showDepleted(mode);
-    return;
-  }
+  if (getRemaining() <= 0) { showDepleted(mode); return; }
 
-  // Gather inputs based on mode
   let payload = { mode };
 
   if (mode === "a") {
     const platforms = [...document.querySelectorAll('input[name="a-plat"]:checked')].map(e => e.value);
-    if (platforms.length === 0) { showErr(mode, "Pick at least one platform your squad has."); return; }
+    if (!platforms.length) { showErr(mode, "Pick at least one platform your squad has."); return; }
     payload.players  = document.getElementById("a-players").value;
     payload.platforms = platforms.join(", ");
     payload.time     = document.getElementById("a-time").value;
@@ -213,7 +171,6 @@ async function generate(mode) {
     payload.time    = document.getElementById("c-time").value;
   }
 
-  // Reset UI
   clearErr(mode);
   hideResult(mode);
   setLoading(mode, true);
@@ -226,98 +183,135 @@ async function generate(mode) {
     });
 
     const data = await res.json();
-
     if (!res.ok) throw new Error(data.error || "Server error. Try again.");
 
-    const text = (data.result || "").trim();
-    if (!text || text.length < 20) throw new Error("Empty response. Hit Reroll.");
+    const result = data.result;
+    if (!result || !result.game) throw new Error("Invalid response. Hit Reroll.");
 
-    // Count this generation
     incrementUsage();
-
-    // Play power-up sound
     playPowerUp();
-
-    // Show result card
-    showResult(mode, text, data.gameTitle || "");
+    showResult(mode, result);
 
   } catch (err) {
-    showErr(mode, err.message || "Something went wrong. Try again.");
+    showErr(mode, err.message || "Something went wrong. Please try again.");
   } finally {
     setLoading(mode, false);
   }
 }
 
-// ── RESULT CARD ──
-function showResult(mode, text, gameTitle) {
-  // Parse sections from AI response
-  const gameMatch = text.match(/^GAME:\s*(.+)/m);
-  const game = gameMatch ? gameMatch[1].trim() : gameTitle || "Unknown Game";
+// ── BUILD RESULT CARD ──
+function showResult(mode, r) {
+  const steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(r.game)}`;
+  const gmgUrl   = `https://www.greenmangaming.com/search/?query=${encodeURIComponent(r.game)}`;
+  const hbUrl    = `https://www.humblebundle.com/store/search?search=${encodeURIComponent(r.game)}`;
 
-  // Remove the GAME: line and split remaining into sections
-  const body = text.replace(/^GAME:\s*.+/m, "").trim();
+  // Mode accent colors
+  const accents = { a: "var(--violet)", b: "var(--amber)", c: "var(--teal)" };
+  const accent = accents[mode];
 
-  // Build the result card HTML
-  const steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(game)}`;
-  const gmgUrl   = `https://www.greenmangaming.com/search/?query=${encodeURIComponent(game)}`;
-  const hbUrl    = `https://www.humblebundle.com/store/search?search=${encodeURIComponent(game)}`;
+  // Build the cinematic hero gradient based on mode
+  const heroGrads = {
+    a: "linear-gradient(135deg, rgba(76,29,149,0.6), rgba(30,58,138,0.4), rgba(11,14,20,0.9))",
+    b: "linear-gradient(135deg, rgba(120,53,15,0.6), rgba(67,20,7,0.4), rgba(11,14,20,0.9))",
+    c: "linear-gradient(135deg, rgba(5,78,72,0.6), rgba(19,78,74,0.4), rgba(11,14,20,0.9))"
+  };
 
-  const card = document.getElementById("rcard-" + mode);
-  const titleEl = document.getElementById("rtitle-" + mode);
-  const bodyEl  = document.getElementById("rbody-" + mode);
+  const reasonsHTML = (r.reasons || []).map(reason => `<li>${reason}</li>`).join("");
+  const similarHTML = (r.similar || []).map(g => `<span class="similar-chip">${g}</span>`).join("");
 
-  if (titleEl) titleEl.textContent = game;
-  if (bodyEl)  bodyEl.textContent  = body;
+  const html = `
+    <div class="result-hero">
+      <div class="result-hero-bg" style="background:${heroGrads[mode]}"></div>
+      <div class="result-hero-gradient"></div>
+      <div class="result-hero-content">
+        <div class="result-rec-badge">Recommended for tonight</div>
+        <div class="result-title">${escHtml(r.game)}</div>
+        <div class="result-tagline">${escHtml(r.tagline || "")}</div>
+        <div class="result-stats">
+          ${r.genre ? `<div class="stat-chip"><span class="stat-icon">🎮</span><span class="stat-label">Genre</span>${escHtml(r.genre)}</div>` : ""}
+          ${r.players ? `<div class="stat-chip"><span class="stat-icon">👥</span><span class="stat-label">Players</span>${escHtml(r.players)}</div>` : ""}
+          ${r.time_to_play ? `<div class="stat-chip"><span class="stat-icon">⏱</span><span class="stat-label">Sessions</span>${escHtml(r.time_to_play)}</div>` : ""}
+          ${r.difficulty ? `<div class="stat-chip"><span class="stat-icon">⚡</span><span class="stat-label">Difficulty</span>${escHtml(r.difficulty)}</div>` : ""}
+          ${r.mood_match ? `<div class="stat-chip"><span class="stat-icon">✨</span>${escHtml(r.mood_match)}</div>` : ""}
+        </div>
+      </div>
+    </div>
 
-  // Set affiliate links
-  const steamBtn = document.getElementById("rbtn-steam-" + mode);
-  const gmgBtn   = document.getElementById("rbtn-gmg-" + mode);
-  const hbBtn    = document.getElementById("rbtn-hb-" + mode);
-  if (steamBtn) steamBtn.href = steamUrl;
-  if (gmgBtn)   gmgBtn.href   = gmgUrl;
-  if (hbBtn)    hbBtn.href    = hbUrl;
+    <div class="result-body">
+      <div class="result-main">
+        <div class="result-section-title">// why it fits tonight</div>
+        <div class="result-why">${escHtml(r.why || "")}</div>
 
-  // Show with animation
+        ${reasonsHTML ? `
+          <div class="result-section-title">// why you'll love it</div>
+          <ul class="reasons-list">${reasonsHTML}</ul>
+        ` : ""}
+
+        ${r.protip ? `
+          <div class="protip-box">
+            <span class="protip-icon">💡</span>
+            <div class="protip-text"><strong>Pro tip:</strong> ${escHtml(r.protip)}</div>
+          </div>
+        ` : ""}
+
+        <div class="result-actions">
+          <button class="btn-sm" onclick="generate('${mode}')" aria-label="Get a new recommendation">Reroll</button>
+          <button class="btn-sm" id="copy-${mode}" onclick="copyResult('${mode}', ${JSON.stringify(r).replace(/'/g, "\\'")})" aria-label="Copy recommendation">Copy</button>
+        </div>
+      </div>
+
+      ${similarHTML ? `
+        <div class="similar-section">
+          <div class="result-section-title">// more like this</div>
+          <div class="similar-grid">${similarHTML}</div>
+        </div>
+      ` : ""}
+
+      <div class="aff-section">
+        <div class="aff-label">// find it here</div>
+        <div class="aff-buttons">
+          <a class="aff-btn aff-steam" href="${steamUrl}" target="_blank" rel="noopener noreferrer">🖥️ Search on Steam</a>
+          <a class="aff-btn aff-gmg" href="${gmgUrl}" target="_blank" rel="noopener noreferrer">🟢 Check on GMG</a>
+          <a class="aff-btn aff-hb" href="${hbUrl}" target="_blank" rel="noopener noreferrer">🎁 Humble Bundle</a>
+        </div>
+      </div>
+    </div>
+  `;
+
   const section = document.getElementById("res-" + mode);
-  if (section) {
-    section.classList.add("show");
-    setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
-  }
+  section.innerHTML = html;
+  section.classList.add("show");
+  setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "nearest" }), 120);
 }
 
 function hideResult(mode) {
-  const section = document.getElementById("res-" + mode);
-  if (section) section.classList.remove("show");
-  const copyBtn = document.getElementById("copy-" + mode);
-  if (copyBtn) { copyBtn.textContent = "Copy"; copyBtn.classList.remove("copied"); }
+  const s = document.getElementById("res-" + mode);
+  if (s) { s.classList.remove("show"); s.innerHTML = ""; }
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
 // ── COPY ──
-async function copyResult(mode) {
-  const title = document.getElementById("rtitle-" + mode)?.textContent || "";
-  const body  = document.getElementById("rbody-" + mode)?.textContent || "";
-  const text  = `🎮 ${title}\n\n${body}`;
+async function copyResult(mode, result) {
+  const text = `🎮 ${result.game}\n\n${result.tagline}\n\n${result.why}\n\nPro tip: ${result.protip}`;
   try {
     await navigator.clipboard.writeText(text);
     const btn = document.getElementById("copy-" + mode);
-    btn.textContent = "Copied!";
-    btn.classList.add("copied");
-    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2500);
+    if (btn) { btn.textContent = "Copied!"; btn.classList.add("copied"); setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2500); }
     playTick();
   } catch {}
 }
 
-// ── LOADING STATE ──
+// ── LOADING ──
 function setLoading(mode, on) {
   const btn  = document.getElementById("btn-" + mode);
-  const load = document.getElementById("load-" + mode);
+  const scan = document.getElementById("scan-" + mode);
   const txt  = document.getElementById("ltxt-" + mode);
-
   if (btn)  btn.disabled = on;
-  if (load) load.classList.toggle("show", on);
-
+  if (scan) scan.classList.toggle("show", on);
   if (on) {
-    startScanAnimation(mode);
     let i = 0;
     if (txt) txt.textContent = LOADING_MSGS[mode][0];
     loadingTimers[mode] = setInterval(() => {
@@ -325,7 +319,6 @@ function setLoading(mode, on) {
       if (txt) txt.textContent = LOADING_MSGS[mode][i];
     }, 1600);
   } else {
-    stopScanAnimation(mode);
     clearInterval(loadingTimers[mode]);
   }
 }
@@ -339,29 +332,24 @@ function clearErr(mode) {
   const el = document.getElementById("err-" + mode);
   if (el) el.classList.remove("show");
 }
-
-// ── DAILY ENERGY DEPLETED ──
 function showDepleted(mode) {
   const el = document.getElementById("err-" + mode);
   if (el) {
-    el.innerHTML = `⚡ Daily energy depleted — you've used all 5 picks for today. Come back tomorrow, or <a href="https://buymeacoffee.com/YOUR_USERNAME" target="_blank" rel="noopener" style="color:var(--warm);text-decoration:underline">buy me a coffee</a> to support the site. ☕`;
+    el.innerHTML = `⚡ Daily energy depleted — 5 picks used. Come back tomorrow, or <a href="https://ko-fi.com/idkwhattoplay" target="_blank" style="color:var(--amber);text-decoration:underline">support the site ☕</a> to keep it running.`;
     el.classList.add("show");
   }
-}
-
-// ── HOVER SOUND on interactive elements ──
-function attachHoverSounds() {
-  document.querySelectorAll(".mode-tab, .pill label, .btn-sm, .store, .bmc-btn").forEach(el => {
-    el.addEventListener("mouseenter", () => playTick(), { passive: true });
-  });
 }
 
 // ── INIT ──
 document.addEventListener("DOMContentLoaded", () => {
   updateMeter();
-  attachHoverSounds();
 
-  // Attach ripple to all buttons
+  // Hover sounds
+  document.querySelectorAll(".mode-tab, .pill label, .btn-sm, .store, .kofi-big, .kofi-btn").forEach(el => {
+    el.addEventListener("mouseenter", () => playTick(), { passive: true });
+  });
+
+  // Ripples
   document.querySelectorAll(".btn-gen, .btn-sm, .mode-tab").forEach(btn => {
     btn.addEventListener("click", createRipple);
   });
