@@ -2,172 +2,127 @@ const Anthropic = require("@anthropic-ai/sdk");
 
 const safe = (str, max) => String(str || "").slice(0, max).trim();
 
-// ── Prompts live on the server — users can never see or manipulate these ──
 const buildPrompt = {
 
-  group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game to play together tonight.
+  group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game tonight.
 
-SQUAD DETAILS:
+SQUAD:
 - Players: ${safe(d.players, 20)}
-- Platforms they have: ${safe(d.platforms, 120)}
-- Time available: ${safe(d.time, 40)}
-- Tonight's vibe: ${safe(d.vibe, 80)}
+- Platforms: ${safe(d.platforms, 120)}
+- Time: ${safe(d.time, 40)}
+- Vibe: ${safe(d.vibe, 80)}
 ${d.context ? `- Extra context: ${safe(d.context, 300)}` : ""}
 
-Respond in EXACTLY this format — no preamble, no extra text:
-
-GAME: [Full Game Name Here]
-
-WHY IT FITS TONIGHT:
-[2-3 punchy sentences. Be specific about WHY this game works for their exact player count, platforms, time, and vibe. Sound like a friend who knows games, not a Wikipedia article.]
-
-PRO TIP:
-[One highly specific, practical tip. A mode to start in, a setting to change, or something that makes the first session way better.]
-
-HARD RULES — follow these or you fail:
-- Recommend ONE game only. No alternatives, no "or you could try...".
-- Only recommend games actually playable on the platforms listed.
-- Player count must match — never recommend a 2-player game for 5 people.
-- If time is short, no 60-hour RPGs.
-- If they listed games they own, strongly prefer recommending one of those.`,
+Respond in EXACTLY this JSON format, nothing else:
+{
+  "game": "Full Game Name",
+  "tagline": "One punchy sentence capturing the essence of this game",
+  "why": "2-3 sentences explaining exactly why this fits their squad, platform, time and vibe tonight. Sound like a knowledgeable friend.",
+  "protip": "One highly specific practical tip for their first session",
+  "genre": "Genre (e.g. Battle Royale, Co-op Shooter, Party Game)",
+  "players": "e.g. 2-6 players",
+  "time_to_play": "e.g. 30 min sessions or 2-3 hour sessions",
+  "difficulty": "Easy / Medium / Hard",
+  "mood_match": "e.g. Perfect for: Chaotic fun nights",
+  "similar": ["Game 1", "Game 2", "Game 3"],
+  "reasons": ["Reason why they'll love it 1", "Reason why they'll love it 2", "Reason why they'll love it 3"]
+}`,
 
   backlog: (d) => `You are a gaming expert helping someone choose from games they already own.
 
-PLAYER SITUATION:
-- Games they own: ${safe(d.games, 600)}
-- Current mood: ${safe(d.mood, 80)}
-- Time available: ${safe(d.time, 40)}
+SITUATION:
+- Games owned: ${safe(d.games, 600)}
+- Mood: ${safe(d.mood, 80)}
+- Time: ${safe(d.time, 40)}
 - Playing: ${safe(d.players, 30)}
 
-YOUR JOB: Pick exactly ONE game from their list that best matches their mood right now.
+Respond in EXACTLY this JSON format, nothing else:
+{
+  "game": "Game Name (must be from their list)",
+  "tagline": "One punchy sentence capturing why this is the pick right now",
+  "why": "2-3 sentences connecting their exact mood to why this specific game is perfect tonight.",
+  "protip": "One specific tip — which mode, save approach, or where to jump in",
+  "genre": "Genre",
+  "players": "e.g. Solo or 2-4 players",
+  "time_to_play": "e.g. 1-2 hour sessions",
+  "difficulty": "Easy / Medium / Hard",
+  "mood_match": "e.g. Perfect for: Chill unwinding",
+  "similar": ["Similar game 1", "Similar game 2", "Similar game 3"],
+  "reasons": ["Why you'll love it tonight 1", "Why you'll love it tonight 2", "Why you'll love it tonight 3"]
+}`,
 
-Respond in EXACTLY this format — no preamble:
-
-GAME: [Game Name — must be from their list]
-
-WHY THIS ONE RIGHT NOW:
-[2-3 sentences connecting their exact mood to why this specific game is the right choice tonight. Be direct and confident.]
-
-WHERE TO START:
-[One specific tip — which mode, which save approach, or exactly where to jump in for tonight's session.]
-
-HARD RULES:
-- You MUST pick from the games they listed. Do not suggest games they don't own.
-- ONE game only. Be decisive.
-- If their list is empty or unreadable, ask them to add some games.`,
-
-  mood: (d) => `You are a game recommendation engine that runs on pure emotional vibes.
+  mood: (d) => `You are a game recommendation engine running on pure emotional vibes.
 
 RIGHT NOW:
-- How they're feeling: ${safe(d.feeling, 100)}
-- Solo or with people: ${safe(d.solo, 30)}
-- Time available: ${safe(d.time, 40)}
+- Feeling: ${safe(d.feeling, 100)}
+- Playing: ${safe(d.solo, 30)}
+- Time: ${safe(d.time, 40)}
 
-Give ONE perfect game recommendation based entirely on this emotional state. Any platform, any era — pure vibe match.
-
-Respond in EXACTLY this format — no preamble:
-
-GAME: [Full Game Name Here]
-
-WHY THIS MATCHES YOUR ENERGY:
-[2-3 sentences that connect their exact emotional state to the game. Be almost poetic — make them feel understood, then excited.]
-
-THE VIBE YOU'LL GET:
-[1-2 sentences describing the actual feeling of playing this game tonight — not mechanics, pure experience.]
-
-HARD RULES:
-- ONE game only. Be opinionated and confident.
-- Prioritise emotional resonance above all else.
-- Don't hedge. Don't say "it depends". Just pick.`
+Respond in EXACTLY this JSON format, nothing else:
+{
+  "game": "Full Game Name",
+  "tagline": "One poetic sentence capturing why this matches their energy",
+  "why": "2-3 sentences connecting their emotional state to this game. Be almost poetic — make them feel understood then excited.",
+  "protip": "One insight that makes the experience better",
+  "genre": "Genre",
+  "players": "e.g. Solo or Multiplayer",
+  "time_to_play": "e.g. Any session length",
+  "difficulty": "Easy / Medium / Hard",
+  "mood_match": "e.g. Perfect for: Stressed minds that need escape",
+  "similar": ["Similar game 1", "Similar game 2", "Similar game 3"],
+  "reasons": ["Emotional reason 1", "Emotional reason 2", "Emotional reason 3"]
+}`
 };
 
 exports.handler = async function (event) {
-  // Only allow POST
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Method not allowed." })
-    };
+    return { statusCode: 405, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  // Parse body
   let body;
-  try {
-    body = JSON.parse(event.body);
-  } catch {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid request." })
-    };
-  }
+  try { body = JSON.parse(event.body); }
+  catch { return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Invalid request." }) }; }
 
   const { mode, ...data } = body;
-
-  // Validate mode
   if (!mode || !buildPrompt[mode]) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid mode." })
-    };
+    return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Invalid mode." }) };
   }
 
-  // Log every search for future analytics — player intent data
+  // Log for analytics
   console.log(JSON.stringify({
     event: "recommendation_request",
     mode,
     timestamp: new Date().toISOString(),
     vibe: data.vibe || data.mood || data.feeling || "unknown",
     players: data.players || "unknown",
-    platforms: data.platforms || "N/A",
-    time: data.time || "unknown",
-    hasContext: !!(data.context || data.games)
+    time: data.time || "unknown"
   }));
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
-      max_tokens: 700,
+      max_tokens: 900,
       messages: [{ role: "user", content: buildPrompt[mode](data) }]
     });
 
-    const text = message.content
-      .filter((b) => b.type === "text")
-      .map((b) => b.text)
-      .join("")
-      .trim();
+    const raw = message.content.filter(b => b.type === "text").map(b => b.text).join("").trim();
 
-    if (!text || text.length < 20) throw new Error("Empty response from AI.");
+    // Parse JSON from response
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("Invalid response format.");
+    const result = JSON.parse(jsonMatch[0]);
 
-    // Parse the game title from the response for affiliate links
-    const gameTitleMatch = text.match(/^GAME:\s*(.+)/m);
-    const gameTitle = gameTitleMatch ? gameTitleMatch[1].trim() : "";
-
-    console.log(JSON.stringify({
-      event: "recommendation_success",
-      mode,
-      gameRecommended: gameTitle,
-      timestamp: new Date().toISOString()
-    }));
+    console.log(JSON.stringify({ event: "recommendation_success", mode, game: result.game, timestamp: new Date().toISOString() }));
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ result: text, gameTitle })
+      body: JSON.stringify({ result })
     };
 
   } catch (err) {
-    console.error(JSON.stringify({
-      event: "recommendation_error",
-      mode,
-      error: err.message,
-      timestamp: new Date().toISOString()
-    }));
-
+    console.error(JSON.stringify({ event: "error", mode, error: err.message, timestamp: new Date().toISOString() }));
     return {
       statusCode: 500,
       headers: { "Content-Type": "application/json" },
