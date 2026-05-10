@@ -1,7 +1,7 @@
 {
   "name": "idkwhattoplay",
-  "version": "4.0.0",
-  "description": "AI-powered game discovery platform",
+  "version": "5.0.0",
+  "description": "AI-powered cinematic game discovery platform",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0"
   }
