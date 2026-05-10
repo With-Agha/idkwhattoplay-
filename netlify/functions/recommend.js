@@ -3,7 +3,6 @@ const Anthropic = require("@anthropic-ai/sdk");
 const safe = (str, max) => String(str || "").slice(0, max).trim();
 
 const buildPrompt = {
-
   group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game tonight.
 
 SQUAD:
@@ -11,21 +10,23 @@ SQUAD:
 - Platforms: ${safe(d.platforms, 120)}
 - Time: ${safe(d.time, 40)}
 - Vibe: ${safe(d.vibe, 80)}
-${d.context ? `- Extra context: ${safe(d.context, 300)}` : ""}
+${d.context ? `- Context: ${safe(d.context, 300)}` : ""}
 
-Respond in EXACTLY this JSON format, nothing else:
+Respond ONLY with valid JSON, no markdown, no preamble:
 {
   "game": "Full Game Name",
-  "tagline": "One punchy sentence capturing the essence of this game",
-  "why": "2-3 sentences explaining exactly why this fits their squad, platform, time and vibe tonight. Sound like a knowledgeable friend.",
+  "tagline": "One punchy sentence — the vibe of this game in one line",
+  "why": "2-3 sentences why this fits their exact squad size, platform, time and vibe. Friend voice, not robot.",
+  "reasons": ["Reason 1 they'll love it", "Reason 2 they'll love it", "Reason 3 they'll love it"],
   "protip": "One highly specific practical tip for their first session",
-  "genre": "Genre (e.g. Battle Royale, Co-op Shooter, Party Game)",
+  "genre": "e.g. Battle Royale",
   "players": "e.g. 2-6 players",
-  "time_to_play": "e.g. 30 min sessions or 2-3 hour sessions",
+  "session_length": "e.g. 30 min sessions",
   "difficulty": "Easy / Medium / Hard",
-  "mood_match": "e.g. Perfect for: Chaotic fun nights",
-  "similar": ["Game 1", "Game 2", "Game 3"],
-  "reasons": ["Reason why they'll love it 1", "Reason why they'll love it 2", "Reason why they'll love it 3"]
+  "mood_match": "e.g. Perfect for: Chaotic fun",
+  "ambience": "dark|bright|cozy|intense",
+  "similar": ["Similar Game 1", "Similar Game 2", "Similar Game 3"],
+  "hltb": "e.g. Main Story: ~15h"
 }`,
 
   backlog: (d) => `You are a gaming expert helping someone choose from games they already own.
@@ -36,19 +37,21 @@ SITUATION:
 - Time: ${safe(d.time, 40)}
 - Playing: ${safe(d.players, 30)}
 
-Respond in EXACTLY this JSON format, nothing else:
+Respond ONLY with valid JSON, no markdown, no preamble. Pick from their list:
 {
-  "game": "Game Name (must be from their list)",
-  "tagline": "One punchy sentence capturing why this is the pick right now",
-  "why": "2-3 sentences connecting their exact mood to why this specific game is perfect tonight.",
-  "protip": "One specific tip — which mode, save approach, or where to jump in",
+  "game": "Game Name from their list",
+  "tagline": "One sentence — why this is the right pick right now",
+  "why": "2-3 sentences connecting their mood to this specific game tonight.",
+  "reasons": ["Why tonight is perfect for this 1", "Why tonight is perfect for this 2", "Why tonight is perfect for this 3"],
+  "protip": "One specific tip — mode, save approach, or where to jump in",
   "genre": "Genre",
-  "players": "e.g. Solo or 2-4 players",
-  "time_to_play": "e.g. 1-2 hour sessions",
+  "players": "Solo or multiplayer info",
+  "session_length": "e.g. 1-2 hour sessions",
   "difficulty": "Easy / Medium / Hard",
-  "mood_match": "e.g. Perfect for: Chill unwinding",
-  "similar": ["Similar game 1", "Similar game 2", "Similar game 3"],
-  "reasons": ["Why you'll love it tonight 1", "Why you'll love it tonight 2", "Why you'll love it tonight 3"]
+  "mood_match": "e.g. Perfect for: Unwinding",
+  "ambience": "dark|bright|cozy|intense",
+  "similar": ["Similar Game 1", "Similar Game 2", "Similar Game 3"],
+  "hltb": "e.g. Main Story: ~20h"
 }`,
 
   mood: (d) => `You are a game recommendation engine running on pure emotional vibes.
@@ -58,19 +61,21 @@ RIGHT NOW:
 - Playing: ${safe(d.solo, 30)}
 - Time: ${safe(d.time, 40)}
 
-Respond in EXACTLY this JSON format, nothing else:
+Respond ONLY with valid JSON, no markdown, no preamble:
 {
   "game": "Full Game Name",
-  "tagline": "One poetic sentence capturing why this matches their energy",
-  "why": "2-3 sentences connecting their emotional state to this game. Be almost poetic — make them feel understood then excited.",
-  "protip": "One insight that makes the experience better",
+  "tagline": "One almost-poetic line — the emotional resonance of this pick",
+  "why": "2-3 sentences connecting their emotional state to this game. Make them feel understood.",
+  "reasons": ["Emotional reason 1", "Emotional reason 2", "Emotional reason 3"],
+  "protip": "One insight that makes the experience better tonight",
   "genre": "Genre",
-  "players": "e.g. Solo or Multiplayer",
-  "time_to_play": "e.g. Any session length",
+  "players": "Solo or multiplayer info",
+  "session_length": "e.g. Any length",
   "difficulty": "Easy / Medium / Hard",
-  "mood_match": "e.g. Perfect for: Stressed minds that need escape",
-  "similar": ["Similar game 1", "Similar game 2", "Similar game 3"],
-  "reasons": ["Emotional reason 1", "Emotional reason 2", "Emotional reason 3"]
+  "mood_match": "e.g. Perfect for: Stressed minds",
+  "ambience": "dark|bright|cozy|intense",
+  "similar": ["Similar Game 1", "Similar Game 2", "Similar Game 3"],
+  "hltb": "e.g. Main Story: ~8h"
 }`
 };
 
@@ -88,14 +93,12 @@ exports.handler = async function (event) {
     return { statusCode: 400, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "Invalid mode." }) };
   }
 
-  // Log for analytics
   console.log(JSON.stringify({
-    event: "recommendation_request",
-    mode,
-    timestamp: new Date().toISOString(),
+    event: "request", mode,
     vibe: data.vibe || data.mood || data.feeling || "unknown",
     players: data.players || "unknown",
-    time: data.time || "unknown"
+    time: data.time || "unknown",
+    timestamp: new Date().toISOString()
   }));
 
   try {
@@ -107,20 +110,17 @@ exports.handler = async function (event) {
     });
 
     const raw = message.content.filter(b => b.type === "text").map(b => b.text).join("").trim();
-
-    // Parse JSON from response
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Invalid response format.");
     const result = JSON.parse(jsonMatch[0]);
 
-    console.log(JSON.stringify({ event: "recommendation_success", mode, game: result.game, timestamp: new Date().toISOString() }));
+    console.log(JSON.stringify({ event: "success", mode, game: result.game, ambience: result.ambience, timestamp: new Date().toISOString() }));
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ result })
     };
-
   } catch (err) {
     console.error(JSON.stringify({ event: "error", mode, error: err.message, timestamp: new Date().toISOString() }));
     return {
