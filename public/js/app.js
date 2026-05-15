@@ -347,7 +347,7 @@ async function generate(mode) {
   setLoading(mode, true);
 
   try {
-    const res = await fetch("/.netlify/functions/recommend", {
+    const response = await fetch('/api/recommend', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
