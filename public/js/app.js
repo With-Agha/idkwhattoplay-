@@ -314,7 +314,6 @@ async function generate(mode) {
   }
 
   // Collect inputs
-  // Map internal modes (a, b, c) to API modes (group, backlog, mood)
   const apiMode = mode === "a" ? "group" : mode === "b" ? "backlog" : "mood";
   let payload = { mode: apiMode };
 
