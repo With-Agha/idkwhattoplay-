@@ -102,7 +102,9 @@ exports.handler = async function (event) {
   }));
 
   try {
-    const client = new Anthropic({ apiKey: "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" });
+    const client = new Anthropic({ 
+  apiKey: process.env.ANTHROPIC_API_KEY 
+});
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 900,
