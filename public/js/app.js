@@ -314,7 +314,9 @@ async function generate(mode) {
   }
 
   // Collect inputs
-  let payload = { mode };
+  // Map internal modes (a, b, c) to API modes (group, backlog, mood)
+  const apiMode = mode === "a" ? "group" : mode === "b" ? "backlog" : "mood";
+  let payload = { mode: apiMode };
 
   if (mode === "a") {
     const platforms = [...document.querySelectorAll('input[name="a-plat"]:checked')].map(e => e.value);
@@ -353,8 +355,8 @@ async function generate(mode) {
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Server error. Try again.");
+    const data = await response.json();
+if (!response.ok) throw new Error(data.error || "Server error. Try again.");
 
     const result = data.result;
     if (!result || !result.game) throw new Error("Empty response. Hit Reroll and try again.");
