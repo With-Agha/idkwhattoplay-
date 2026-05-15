@@ -314,7 +314,7 @@ async function generate(mode) {
   }
 
   // Collect inputs
-  const apiMode = mode === "a" ? "group" : mode === "b" ? "backlog" : "mood";
+  const apiMode = mode === 'a' ? 'group' : mode === 'b' ? 'backlog' : 'mood';
   let payload = { mode: apiMode };
 
   if (mode === "a") {
@@ -325,18 +325,14 @@ async function generate(mode) {
     payload.time      = document.getElementById("a-time").value;
     payload.vibe      = document.querySelector('input[name="a-vibe"]:checked')?.value || "chill";
     payload.context   = document.getElementById("a-ctx").value.trim();
-  }
-
-  if (mode === "b") {
+  } else if (mode === "b") {
     const games = document.getElementById("b-games").value.trim();
     if (!games) { showErr(mode, "Add some games you own first."); return; }
     payload.games   = games;
     payload.mood    = document.querySelector('input[name="b-mood"]:checked')?.value || "chill";
     payload.time    = document.getElementById("b-time").value;
     payload.players = document.getElementById("b-players").value;
-  }
-
-  if (mode === "c") {
+  } else if (mode === "c") {
     payload.feeling = document.getElementById("c-feeling").value;
     payload.solo    = document.querySelector('input[name="c-solo"]:checked')?.value || "solo";
     payload.time    = document.getElementById("c-time").value;
@@ -355,7 +351,7 @@ async function generate(mode) {
     });
 
     const data = await response.json();
-if (!response.ok) throw new Error(data.error || "Server error. Try again.");
+    if (!response.ok) throw new Error(data.error || "Server error.");
 
     const result = data.result;
     if (!result || !result.game) throw new Error("Empty response. Hit Reroll and try again.");
