@@ -1,6 +1,6 @@
 const Anthropic = require("@anthropic-ai/sdk");
 
-const safe = (str, max) => String(str || "").slice(0, max).trim();
+const safe = (str, max) => String(str || "").slice(0, max).trim(); 
 
 const buildPrompt = {
   group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game tonight.
