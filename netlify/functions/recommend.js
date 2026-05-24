@@ -1,7 +1,12 @@
 const Anthropic = require("@anthropic-ai/sdk");
 
-// Fix 1: Initialize the client globally at the top level
+// Initialize client globally
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Single, clean helper function declared BEFORE the prompts use it
+function safe(str, max) {
+  return String(str || "").slice(0, max).trim();
+}
 
 const buildPrompt = {
   group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game tonight.
@@ -86,10 +91,6 @@ Respond ONLY with valid JSON, no markdown, no preamble, no explanation:
 The ambience field must be exactly one of: dark, bright, cozy, intense`
 };
 
-function safe(str, max) {
-  return String(str || "").slice(0, max).trim();
-}
-
 exports.handler = async function (event) {
   // Only allow POST
   if (event.httpMethod !== "POST") {
@@ -119,11 +120,10 @@ exports.handler = async function (event) {
     return {
       statusCode: 400,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid mode. Must be a, b, or c." })
+      body: JSON.stringify({ error: "Invalid mode." })
     };
   }
 
-  // Log for analytics
   console.log(JSON.stringify({
     event: "request",
     mode,
@@ -131,7 +131,6 @@ exports.handler = async function (event) {
   }));
 
   try {
-    // Fix 2: Switched model key string parameters to standard naming layout
     const message = await client.messages.create({
       model: "claude-3-5-sonnet-20240620",
       max_tokens: 900,
@@ -144,7 +143,6 @@ exports.handler = async function (event) {
       .join("")
       .trim();
 
-    // Extract JSON from response
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("AI did not return valid JSON.");
