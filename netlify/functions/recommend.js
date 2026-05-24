@@ -132,8 +132,8 @@ exports.handler = async function (event) {
 
   try {
     const message = await client.messages.create({
-      model: "claude-3-5-sonnet-latest",
-      max_tokens: 900,
+      model: "claude-3-haiku-20240307",
+      max_tokens: 1000,
       messages: [{ role: "user", content: buildPrompt[mode](data) }]
     });
 
