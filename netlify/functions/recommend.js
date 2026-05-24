@@ -1,6 +1,7 @@
 const Anthropic = require("@anthropic-ai/sdk");
 
-const safe = (str, max) => String(str || "").slice(0, max).trim();
+// Fix 1: Initialize the client globally at the top level
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const buildPrompt = {
   group: (d) => `You are the world's best gaming expert. A group of friends needs the PERFECT game tonight.
@@ -85,6 +86,10 @@ Respond ONLY with valid JSON, no markdown, no preamble, no explanation:
 The ambience field must be exactly one of: dark, bright, cozy, intense`
 };
 
+function safe(str, max) {
+  return String(str || "").slice(0, max).trim();
+}
+
 exports.handler = async function (event) {
   // Only allow POST
   if (event.httpMethod !== "POST") {
@@ -126,11 +131,9 @@ exports.handler = async function (event) {
   }));
 
   try {
-    // API key from environment variable — never from frontend
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
+    // Fix 2: Switched model key string parameters to standard naming layout
     const message = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-3-5-sonnet-20240620",
       max_tokens: 900,
       messages: [{ role: "user", content: buildPrompt[mode](data) }]
     });
