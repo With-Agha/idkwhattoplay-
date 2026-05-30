@@ -17,11 +17,11 @@ const LOAD_MSGS = {
 
 // Ambience colors per game vibe
 const AMBIENCE = {
-  dark:     { r: 180, g: 40,  b: 40  }, // dark red/crimson
-  intense:  { r: 245, g: 100, b: 20  }, // orange-amber
-  bright:   { r: 139, g: 92,  b: 246 }, // violet
-  cozy:     { r: 245, g: 158, b: 11  }, // amber/warm
-  default:  { r: 139, g: 92,  b: 246 }  // violet
+  dark:     { r: 180, g: 40,  b: 40  },
+  intense:  { r: 245, g: 100, b: 20  },
+  bright:   { r: 0,   g: 212, b: 255 },  // ← was violet, now cyan
+  cozy:     { r: 244, g: 196, b: 48  },  // ← was amber, now gold
+  default:  { r: 0,   g: 212, b: 255 }   // ← was violet, now cyan
 };
 
 let loadTimers   = {};
