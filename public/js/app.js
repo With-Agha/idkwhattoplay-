@@ -19,9 +19,9 @@ const LOAD_MSGS = {
 const AMBIENCE = {
   dark:     { r: 180, g: 40,  b: 40  },
   intense:  { r: 245, g: 100, b: 20  },
-  bright:   { r: 0,   g: 212, b: 255 },  // ← was violet, now cyan
-  cozy:     { r: 244, g: 196, b: 48  },  // ← was amber, now gold
-  default:  { r: 0,   g: 212, b: 255 }   // ← was violet, now cyan
+  bright:   { r: 0,   g: 150, b: 255 },
+  cozy:     { r: 255, g: 180, b: 50  },
+  default:  { r: 0,   g: 150, b: 255 }
 };
 
 let loadTimers   = {};
